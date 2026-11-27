@@ -8,7 +8,7 @@ Show the cost (USD) and tokens of agent review runs on three screens.
 ## User-visible behaviour
 
 **1. Pull Requests list.** A new **Cost** column sits between Status and Updated.
-- It shows the latest-round cost, for example `$0.014`, or `—`.
+- It shows the PR's total review cost (every run, re-runs included), for example `$0.014`, or `—`.
 - `PRRow` → `<RunCostBadge variant="compact" />`.
 
 **2. PR detail → Agent runs timeline.** Each settled (`done`) run card shows `9,119 tok · $0.0013` under the run time.

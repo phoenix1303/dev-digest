@@ -1,28 +1,23 @@
 /**
- * M1 — PR-list COST column: the cost of the PR's *latest review round*.
+ * M1 — PR-list COST column: the TOTAL cost of every review run on the PR.
  *
- * "Latest round" = the newest run of EACH agent on the PR; the column is the
- * sum of those runs' `cost_usd`. Older/re-run attempts of the same agent are
- * ignored. A latest run with no known cost (failed, cancelled, still running,
- * unpriced model) contributes nothing; if no run in the round has a known
- * cost, the PR's cost is null (UI shows "—", never "$0.00").
- * Runs whose agent was deleted (agentId null) belong to no round → skipped.
+ * Every agent_run on the PR counts: re-runs, older rounds, and runs whose agent
+ * was later deleted (the money was still spent). Each new run adds to the total.
+ * A run with no known cost (failed, cancelled, still running, unpriced model)
+ * contributes nothing. If no run on the PR has a known cost, the PR's cost is
+ * null (UI shows "—", never "$0.00"). Runs deleted from the timeline are gone
+ * from agent_runs and so leave the total.
  */
 export interface RunCostRow {
   prId: string | null;
-  agentId: string | null;
   costUsd: number | null;
 }
 
-/** @param rows agent_runs rows ordered NEWEST FIRST (ran_at desc). */
-export function latestRoundCost(rows: readonly RunCostRow[]): Map<string, number | null> {
-  const seen = new Set<string>(); // `${prId}:${agentId}` already taken
+/** Sum `cost_usd` over all runs per PR. Row order does not matter. */
+export function totalRunCost(rows: readonly RunCostRow[]): Map<string, number | null> {
   const totals = new Map<string, number | null>();
   for (const r of rows) {
-    if (!r.prId || !r.agentId) continue;
-    const key = `${r.prId}:${r.agentId}`;
-    if (seen.has(key)) continue; // an older run of this agent
-    seen.add(key);
+    if (!r.prId) continue;
     const prev = totals.get(r.prId) ?? null;
     if (r.costUsd == null) {
       if (!totals.has(r.prId)) totals.set(r.prId, null);

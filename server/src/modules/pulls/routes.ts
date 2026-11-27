@@ -8,7 +8,7 @@ import { getContext } from '../_shared/context.js';
 import { IdParams } from '../_shared/schemas.js';
 import { AppError, NotFoundError } from '../../platform/errors.js';
 import { deriveReviewStatus } from './status.js';
-import { latestRoundCost } from './cost.js';
+import { totalRunCost } from './cost.js';
 import { findingsSummaries, latestRoundReviewIds } from './findings-summary.js';
 
 /**
@@ -154,16 +154,15 @@ export default async function pullsRoutes(appBase: FastifyInstance) {
       }
     }
 
-    // M1 — latest-round COST per PR (newest run of each agent, summed).
-    // Same pattern: one IN-query, newest-first, grouped in JS.
+    // M1 — TOTAL COST per PR: every review run on the PR, summed, so each
+    // re-run adds to it. Same pattern: one IN-query, grouped in JS.
     let costByPr = new Map<string, number | null>();
     if (prIds.length > 0) {
       const runRows = await container.db
-        .select({ prId: t.agentRuns.prId, agentId: t.agentRuns.agentId, costUsd: t.agentRuns.costUsd })
+        .select({ prId: t.agentRuns.prId, costUsd: t.agentRuns.costUsd })
         .from(t.agentRuns)
-        .where(inArray(t.agentRuns.prId, prIds))
-        .orderBy(desc(t.agentRuns.ranAt));
-      costByPr = latestRoundCost(runRows);
+        .where(inArray(t.agentRuns.prId, prIds));
+      costByPr = totalRunCost(runRows);
     }
 
     const now = Date.now();
