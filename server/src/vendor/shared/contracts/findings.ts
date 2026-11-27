@@ -62,6 +62,39 @@ export const Finding = z.object({
 });
 export type Finding = z.infer<typeof Finding>;
 
+/**
+ * Compact per-PR findings summary for the PR list (M1): the PR's latest review
+ * round = the newest review of each agent. `counts` covers every finding in
+ * the round; `preview` is the most severe few (rationale truncated) for the
+ * hover card, so the list needs no extra request.
+ */
+export const FindingPreview = Finding.pick({
+  id: true,
+  severity: true,
+  category: true,
+  title: true,
+  file: true,
+  start_line: true,
+  end_line: true,
+  rationale: true,
+  confidence: true,
+});
+export type FindingPreview = z.infer<typeof FindingPreview>;
+
+export const SeverityCounts = z.object({
+  CRITICAL: z.number().int(),
+  WARNING: z.number().int(),
+  SUGGESTION: z.number().int(),
+});
+export type SeverityCounts = z.infer<typeof SeverityCounts>;
+
+export const FindingsSummary = z.object({
+  total: z.number().int(),
+  counts: SeverityCounts,
+  preview: z.array(FindingPreview),
+});
+export type FindingsSummary = z.infer<typeof FindingsSummary>;
+
 /** Review — the consolidated structured output of a single agent run. */
 export const Review = z.object({
   verdict: Verdict,
