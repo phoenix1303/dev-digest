@@ -9,11 +9,12 @@ It costs nothing extra: no additional model calls, only the usage the provider a
 ## User-visible behaviour
 - `GET /pulls/:id/runs`: each `RunSummary` carries `cost_usd`.
 - `GET /runs/:id/trace`: `stats.cost_usd`.
-- `GET /repos/:id/pulls`: each `PrMeta` carries `cost_usd`, the **latest-round** cost.
-  - That is the sum of `cost_usd` over the newest run of each agent on the PR. Older re-runs are ignored.
-  - A latest run with no cost contributes nothing, and the round does not fall back to an older run.
-  - Runs of deleted agents are skipped.
-  - When no run in the round has a cost, `cost_usd` is null.
+- `GET /repos/:id/pulls`: each `PrMeta` carries `cost_usd`, the **total** cost of the PR's reviews.
+  - That is the sum of `cost_usd` over **every** run on the PR. Each new run or re-run adds to it.
+    (Changed 2026-11-27. It used to be the latest round only: the newest run of each agent.)
+  - Runs of deleted agents still count, because the money was spent. A run deleted from the timeline leaves the total.
+  - A run with no cost (failed, cancelled, unpriced) contributes nothing.
+  - When no run on the PR has a cost, `cost_usd` is null.
 
 `null` means unknown. The UI shows it as "—", never "$0.00".
 
@@ -29,7 +30,7 @@ It costs nothing extra: no additional model calls, only the usage the provider a
 - `RunStats.cost_usd: number | null | undefined`. It is `nullish` because traces saved before M1 have no such field.
 - `PrMeta.cost_usd: number | null | undefined`. Only the list endpoint fills it.
 - Both copies of `@devdigest/shared` are updated.
-- Pure helper: `src/modules/pulls/cost.ts` → `latestRoundCost()`.
+- Pure helper: `src/modules/pulls/cost.ts` → `totalRunCost()`.
 
 ## Out of scope
 - Cost of failed or cancelled runs. They stay null: tokens spent before the failure are not recovered.
@@ -39,6 +40,6 @@ It costs nothing extra: no additional model calls, only the usage the provider a
 ## Acceptance
 - [x] Completed run persists `cost_usd` (`test/reviews.it.test.ts`).
 - [x] Runs list, trace stats and PR list expose it (same test).
-- [x] Latest-round aggregation rules (`test/pulls-cost.test.ts`).
+- [x] Total-cost aggregation rules (`test/pulls-cost.test.ts`).
 - [x] Old traces without `cost_usd` still parse (`test/contracts.test.ts`).
 - [x] Engine sums cost per chunk; one null chunk makes the total null (`reviewer-core/test/run.test.ts`).

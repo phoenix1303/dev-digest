@@ -29,7 +29,13 @@
   "panel": {
     "hideLowConfidence": "Hide low confidence",
     "noMatchTitle": "No findings match",
-    "noMatchBody": "Adjust the filters above, or run a review to generate findings."
+    "noMatchBody": "Adjust the filters above, or run a review to generate findings.",
+    "severityFilter": "Filter by severity",
+    "severity": {
+      "CRITICAL": "CRITICAL",
+      "WARNING": "WARNING",
+      "SUGGESTION": "SUGGESTION"
+    }
   },
   "runReview": {
     "runAll": "Run all enabled agents",
@@ -91,6 +97,7 @@
       "author": "Author",
       "size": "Size",
       "score": "Score",
+      "findings": "Findings",
       "status": "Status",
       "cost": "Cost",
       "updated": "Updated"
@@ -110,5 +117,11 @@
   "costBadge": {
     "tokens": "{total} tok",
     "tooltip": "{cost} · {tokensIn} in / {tokensOut} out"
+  },
+  "findingsPreview": {
+    "heading": "{count, plural, one {# finding} other {# findings}}",
+    "runHeading": "{count, plural, one {# finding in this run} other {# findings in this run}}",
+    "more": "+{count} more on the PR page",
+    "label": "{critical} critical, {warning} warning, {suggestion} suggestion — hover for details"
   }
 }
