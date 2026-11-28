@@ -8,14 +8,15 @@ import type {
 import { AppError, NotFoundError } from '../../platform/errors.js';
 import type { PullRecord, PullRepo, PullsRepositoryPort, PullsServiceDeps } from './types.js';
 import { deriveReviewStatus } from './status.js';
-import { latestRoundCost } from './cost.js';
+import { totalRunCost } from './cost.js';
+import { findingsSummaries, latestRoundReviewIds } from './findings-summary.js';
 import { DIFF_STAT_BACKFILL_LIMIT } from './constants.js';
 import { toPrMeta } from './helpers.js';
 
 /**
  * F1 — pulls service. Business logic for the PR list + detail:
  *   - local-first GitHub sync (never fails a read when GitHub is unreachable)
- *   - diff-stat backfill, latest-review score and latest-round cost per PR
+ *   - diff-stat backfill, latest-review score, latest-round findings and total cost per PR
  *   - inline review comments proxied live to GitHub
  *
  * No HTTP and no raw SQL here — persistence goes through PullsRepositoryPort,
@@ -104,14 +105,21 @@ export class PullsService {
     }
 
     // Latest-review SCORE per PR (rows come newest-first → first seen wins).
-    // The per-severity breakdown is intentionally not on the list.
     const prIds = rows.map((r) => r.id);
+    const reviews = await this.repo.reviewsNewestFirst(prIds);
     const scoreByPr = new Map<string, number | null>();
-    for (const rv of await this.repo.reviewScoresNewestFirst(prIds)) {
+    for (const rv of reviews) {
       if (!scoreByPr.has(rv.prId)) scoreByPr.set(rv.prId, rv.score);
     }
-    // M1 — latest-round COST per PR (newest run of each agent, summed).
-    const costByPr = latestRoundCost(await this.repo.runCostsNewestFirst(prIds));
+    // M1 — latest-round FINDINGS per PR (newest review of each agent):
+    // per-severity counts + a short preview for the Findings column hover.
+    const roundByPr = latestRoundReviewIds(reviews);
+    const findingsByPr = findingsSummaries(
+      roundByPr,
+      await this.repo.findingsForReviews([...roundByPr.values()].flat()),
+    );
+    // M1 — TOTAL COST per PR: every review run on the PR, summed.
+    const costByPr = totalRunCost(await this.repo.runCosts(prIds));
 
     const now = Date.now();
     return rows.map((r) =>
@@ -125,6 +133,7 @@ export class PullsService {
         }),
         score: scoreByPr.get(r.id) ?? null,
         costUsd: costByPr.get(r.id) ?? null,
+        findings: findingsByPr.get(r.id) ?? null,
       }),
     );
   }

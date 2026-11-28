@@ -1,5 +1,6 @@
 import type { GitHubClient, PrDetail, PrMeta } from '@devdigest/shared';
 import type { RunCostRow } from './cost.js';
+import type { FindingRow, ReviewRoundRow } from './findings-summary.js';
 
 /**
  * Pulls module — domain types and ports (rings 1–2). No Drizzle, no Fastify:
@@ -39,6 +40,11 @@ export interface DiffStats {
   filesCount: number;
 }
 
+/** A review row as the PR list needs it. */
+export interface ReviewListRow extends ReviewRoundRow {
+  score: number | null;
+}
+
 export interface PullsRepositoryPort {
   getRepo(workspaceId: string, repoId: string): Promise<PullRepo | undefined>;
   getById(workspaceId: string, id: string): Promise<PullRecord | undefined>;
@@ -51,8 +57,10 @@ export interface PullsRepositoryPort {
   replaceDetail(prId: string, detail: PrDetail): Promise<void>;
   /** The persisted detail (offline fallback). */
   getPersistedDetail(prId: string): Promise<PrDetail | undefined>;
-  reviewScoresNewestFirst(prIds: string[]): Promise<{ prId: string; score: number | null }[]>;
-  runCostsNewestFirst(prIds: string[]): Promise<RunCostRow[]>;
+  /** kind='review' rows for the PRs, NEWEST FIRST (score + latest-round input). */
+  reviewsNewestFirst(prIds: string[]): Promise<ReviewListRow[]>;
+  findingsForReviews(reviewIds: string[]): Promise<FindingRow[]>;
+  runCosts(prIds: string[]): Promise<RunCostRow[]>;
 }
 
 /** Minimal pino-compatible logger the service needs. */

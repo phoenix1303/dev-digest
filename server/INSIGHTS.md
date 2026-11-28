@@ -27,6 +27,7 @@ when the file passes ~200 entries.
 - 2026-11-26 · pnpm 11+ fails the install with `ERR_PNPM_IGNORED_BUILDS` (esbuild, ssh2, cpu-features, protobufjs) because it blocks dependency build scripts and the project has no approval config — use pnpm 10 (`npm i -g pnpm@10`), then delete the half-installed `node_modules`, since `scripts/dev.sh` skips the install whenever that folder exists.
 
 ## Recurring Errors & Fixes
+- 2026-11-28 · After merging main into a branch that refactored a route into routes → service → repository, check that main's new logic was PORTED into the service, not left behind: the GitHub conflict editor kept main's inline handler as dead code after `return service.listForRepo(...)`, so M1 findings + total cost silently vanished from the PR list. The client copy of prReview.json also lost main's `findingsPreview` block (only vitest caught it) — evidence: server/src/modules/pulls/service.ts (listForRepo), server/test/pulls-service.test.ts
 - 2026-11-27 · A test run whose trace lacks expected prompt fields is usually a FAILED run: when a `MockLLMProvider` fixture fails the Review schema (e.g. `category: 'tests'` instead of `'test'`), the LLM call is recorded but the run fails and the trace is rebuilt from the log buffer. Assert `agent_runs.error` is null first — evidence: server/test/skills.it.test.ts
 
 ## Session Notes

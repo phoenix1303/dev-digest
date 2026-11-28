@@ -10,7 +10,10 @@ import type {
   PullRecord,
   PullRepo,
   PullsRepositoryPort,
+  ReviewListRow,
 } from '../src/modules/pulls/types.js';
+import type { FindingRow } from '../src/modules/pulls/findings-summary.js';
+import type { RunCostRow } from '../src/modules/pulls/cost.js';
 import { DIFF_STAT_BACKFILL_LIMIT } from '../src/modules/pulls/constants.js';
 import { MockGitHubClient } from '../src/adapters/mocks.js';
 import { AppError, NotFoundError } from '../src/platform/errors.js';
@@ -70,11 +73,17 @@ class FakePulls implements PullsRepositoryPort {
   async getPersistedDetail() {
     return this.persisted;
   }
-  async reviewScoresNewestFirst() {
-    return [];
+  reviews: ReviewListRow[] = [];
+  findings: FindingRow[] = [];
+  costs: RunCostRow[] = [];
+  async reviewsNewestFirst() {
+    return this.reviews;
   }
-  async runCostsNewestFirst() {
-    return [];
+  async findingsForReviews(ids: string[]) {
+    return this.findings.filter((f) => ids.includes(f.reviewId));
+  }
+  async runCosts() {
+    return this.costs;
   }
 }
 
@@ -89,6 +98,42 @@ describe('PullsService', () => {
     expect(list.map((p) => p.number)).toEqual([1]);
     expect(pulls.upserts).toHaveLength(0);
     expect(pulls.statUpdates).toHaveLength(0);
+  });
+
+  it('list carries latest-review score, latest-round findings and total cost (M1)', async () => {
+    const pulls = new FakePulls([record(1, { additions: 3 }), record(2, { additions: 3 })]);
+    // Newest first: r2 is agent A's re-run (supersedes r1); r3 is agent B.
+    pulls.reviews = [
+      { id: 'r2', prId: 'pr-1', agentId: 'A', score: 80 },
+      { id: 'r3', prId: 'pr-1', agentId: 'B', score: 60 },
+      { id: 'r1', prId: 'pr-1', agentId: 'A', score: 10 },
+    ];
+    const f = (id: string, reviewId: string, severity: string): FindingRow => ({
+      id,
+      reviewId,
+      severity,
+      category: 'bug',
+      title: id,
+      file: 'a.ts',
+      startLine: 1,
+      endLine: 1,
+      rationale: 'why',
+      confidence: 0.9,
+    });
+    pulls.findings = [f('f1', 'r1', 'CRITICAL'), f('f2', 'r2', 'WARNING'), f('f3', 'r3', 'CRITICAL')];
+    pulls.costs = [
+      { prId: 'pr-1', costUsd: 0.01 },
+      { prId: 'pr-1', costUsd: 0.02 },
+    ];
+    const svc = new PullsService({ pulls, github: offline, log: silent });
+    const [one, two] = await svc.listForRepo(WS, REPO.id);
+    expect(one!.score).toBe(80);
+    expect(one!.cost_usd).toBeCloseTo(0.03);
+    expect(one!.findings?.total).toBe(2);
+    expect(one!.findings?.counts).toEqual({ CRITICAL: 1, WARNING: 1, SUGGESTION: 0 });
+    expect(two!.score).toBeNull();
+    expect(two!.cost_usd).toBeNull();
+    expect(two!.findings).toBeNull();
   });
 
   it('caps the diff-stat backfill per request', async () => {

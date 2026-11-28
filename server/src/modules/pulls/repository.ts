@@ -3,7 +3,14 @@ import type { PrMeta, PrDetail } from '@devdigest/shared';
 import type { Db } from '../../db/client.js';
 import * as t from '../../db/schema.js';
 import type { RunCostRow } from './cost.js';
-import type { DiffStats, PullRecord, PullRepo, PullsRepositoryPort } from './types.js';
+import type { FindingRow } from './findings-summary.js';
+import type {
+  DiffStats,
+  PullRecord,
+  PullRepo,
+  PullsRepositoryPort,
+  ReviewListRow,
+} from './types.js';
 
 /**
  * F1 — pulls data-access layer. The ONLY place that touches `pull_requests`,
@@ -172,24 +179,51 @@ export class PullsRepository implements PullsRepositoryPort {
     return toPrDetail(pr, files, commits);
   }
 
-  /** Review scores for the given PRs, newest first (caller keeps the first per PR). */
-  async reviewScoresNewestFirst(prIds: string[]): Promise<{ prId: string; score: number | null }[]> {
+  /**
+   * kind='review' rows for the given PRs, newest first — the caller takes the
+   * first per PR for the score and the newest per (PR, agent) for the round.
+   */
+  async reviewsNewestFirst(prIds: string[]): Promise<ReviewListRow[]> {
     if (prIds.length === 0) return [];
     return this.db
-      .select({ prId: t.reviews.prId, score: t.reviews.score })
+      .select({
+        id: t.reviews.id,
+        prId: t.reviews.prId,
+        agentId: t.reviews.agentId,
+        score: t.reviews.score,
+      })
       .from(t.reviews)
       .where(and(inArray(t.reviews.prId, prIds), eq(t.reviews.kind, 'review')))
       .orderBy(desc(t.reviews.createdAt));
   }
 
-  /** Agent-run costs for the given PRs, newest first (input to latestRoundCost). */
-  async runCostsNewestFirst(prIds: string[]): Promise<RunCostRow[]> {
+  /** Findings of the given reviews (input to findingsSummaries). */
+  async findingsForReviews(reviewIds: string[]): Promise<FindingRow[]> {
+    if (reviewIds.length === 0) return [];
+    return this.db
+      .select({
+        id: t.findings.id,
+        reviewId: t.findings.reviewId,
+        severity: t.findings.severity,
+        category: t.findings.category,
+        title: t.findings.title,
+        file: t.findings.file,
+        startLine: t.findings.startLine,
+        endLine: t.findings.endLine,
+        rationale: t.findings.rationale,
+        confidence: t.findings.confidence,
+      })
+      .from(t.findings)
+      .where(inArray(t.findings.reviewId, reviewIds));
+  }
+
+  /** Agent-run costs for the given PRs (input to totalRunCost; order irrelevant). */
+  async runCosts(prIds: string[]): Promise<RunCostRow[]> {
     if (prIds.length === 0) return [];
     return this.db
-      .select({ prId: t.agentRuns.prId, agentId: t.agentRuns.agentId, costUsd: t.agentRuns.costUsd })
+      .select({ prId: t.agentRuns.prId, costUsd: t.agentRuns.costUsd })
       .from(t.agentRuns)
-      .where(inArray(t.agentRuns.prId, prIds))
-      .orderBy(desc(t.agentRuns.ranAt));
+      .where(inArray(t.agentRuns.prId, prIds));
   }
 }
 

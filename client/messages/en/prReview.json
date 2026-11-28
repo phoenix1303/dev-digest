@@ -154,5 +154,11 @@
       "findings": "Agent runs",
       "diff": "Files changed"
     }
+  },
+  "findingsPreview": {
+    "heading": "{count, plural, one {# finding} other {# findings}}",
+    "runHeading": "{count, plural, one {# finding in this run} other {# findings in this run}}",
+    "more": "+{count} more on the PR page",
+    "label": "{critical} critical, {warning} warning, {suggestion} suggestion — hover for details"
   }
 }
