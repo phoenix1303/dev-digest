@@ -28,9 +28,21 @@
     {
       "cmd": [
         "find",
-        "text",
-        "untested-branches",
-        "click"
+        "placeholder",
+        "Search skills…",
+        "fill",
+        "untested-branches"
+      ],
+      "label": "filter the list to the seeded skill (it sorts last, below the fold)"
+    },
+    {
+      "cmd": [
+        "find",
+        "role",
+        "button",
+        "click",
+        "--name",
+        "untested-branches"
       ],
       "label": "open the skill"
     },
