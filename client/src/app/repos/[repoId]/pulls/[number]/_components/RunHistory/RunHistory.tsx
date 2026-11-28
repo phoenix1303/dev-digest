@@ -3,8 +3,9 @@
 import React from "react";
 import { useTranslations } from "next-intl";
 import { Badge, Icon, CircularScore, type IconName } from "@devdigest/ui";
+
+import { RunCostBadge } from "@/components/run-cost-badge";
 import type { RunSummary, PrCommit, FindingPreview } from "@devdigest/shared";
-import { RunCostBadge } from "../../../_components/RunCostBadge/RunCostBadge";
 import { FindingsPreview, countBySeverity } from "../../../_components/FindingsPreview";
 
 /**

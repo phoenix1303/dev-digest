@@ -36,14 +36,28 @@ export const ToolCall = z.object({
 });
 export type ToolCall = z.infer<typeof ToolCall>;
 
+export const SkillBlockTrace = z.object({
+  skill_id: z.string(),
+  name: z.string(),
+  source: z.string(),
+  version: z.number().int(),
+  tokens: z.number().int(),
+});
+export type SkillBlockTrace = z.infer<typeof SkillBlockTrace>;
+
 export const PromptAssembly = z.object({
   system: z.string(),
   skills: z.string().nullish(),
+  /** Per-skill breakdown of the skills block (M2); nullish for older traces. */
+  skill_blocks: z.array(SkillBlockTrace).nullish(),
+  /** Total tokens added by the skills block (M2). */
+  skills_tokens: z.number().int().nullish(),
   memory: z.string().nullish(),
   specs: z.string().nullish(),
-  /** Callers-of-changed-symbols digest (repo-intel); null when absent. */
+  /** Callers-of-changed-symbols digest (T1.3); null when absent. */
   callers: z.string().nullish(),
-  /** Repo skeleton / map (repo-intel); null when absent. */
+  /** Repo skeleton / map (T3); null when absent. Enables per-slot token
+      attribution in the run trace. */
   repo_map: z.string().nullish(),
   /** PR author's description/body (truncated); null when absent. */
   pr_description: z.string().nullish(),

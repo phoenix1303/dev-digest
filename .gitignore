@@ -6,6 +6,7 @@ dist/
 !agent-runner/dist/**
 build/
 .next/
+.next-e2e/
 out/
 coverage/
 *.tsbuildinfo
@@ -17,6 +18,7 @@ coverage/
 .pnpm-store/
 *.log
 .devdigest/cache/
+.devdigest/self-review/
 clones/
 playwright-report/
 test-results/
