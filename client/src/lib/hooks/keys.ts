@@ -30,6 +30,8 @@ export const queryKeys = {
   agent: (id: Id) => ["agent", id] as const,
   agentSkills: (agentId: Id) => ["agent-skills", agentId] as const,
 
+  conventions: (repoId: Id) => ["conventions", repoId] as const,
+
   skills: () => ["skills"] as const,
   /** Prefix: everything cached for one skill (detail, preview, stats, versions). */
   skillAll: (id: Id) => ["skill", id] as const,

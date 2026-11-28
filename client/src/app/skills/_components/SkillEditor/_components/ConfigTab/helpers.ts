@@ -34,7 +34,5 @@ export function buildPatch(skill: Skill, d: SkillDraft): UpdateSkillInput {
   return patch;
 }
 
-/** Rough token estimate for the live counter (server uses tiktoken for the real one). */
-export function approxTokens(text: string): number {
-  return Math.ceil(text.length / 4);
-}
+/** Re-exported from the shared helper (also used by the Conventions modal). */
+export { approxTokens } from "@/lib/tokens";

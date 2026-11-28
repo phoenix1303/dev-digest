@@ -1,5 +1,6 @@
 import type {
   ConfirmSkillImportInput,
+  CreateConventionSkillInput,
   CreateSkillInput,
   Skill,
   SkillImportPreview,
@@ -12,6 +13,7 @@ import { renderSkillBlock } from '@devdigest/reviewer-core';
 import { ArchiveError } from '../../adapters/archive/index.js';
 import { ConflictError, NotFoundError, ValidationError } from '../../platform/errors.js';
 import {
+  EXTRACTED_CHANGE_NOTE,
   INITIAL_CHANGE_NOTE,
   LARGE_SKILL_TOKENS,
   MAX_MD_BYTES,
@@ -84,6 +86,30 @@ export class SkillsService {
       body: input.body,
       enabled: input.enabled ?? true,
       changeNote: INITIAL_CHANGE_NOTE,
+    });
+    return toSkillDto(skill);
+  }
+
+  /**
+   * Save a skill merged from accepted conventions: always type `convention`,
+   * source `extracted`, with the evidence files it was derived from.
+   */
+  async createExtracted(
+    workspaceId: string,
+    input: CreateConventionSkillInput,
+    evidenceFiles: string[],
+  ): Promise<Skill> {
+    await this.assertNameFree(workspaceId, input.name);
+    const skill = await this.deps.skills.insert({
+      workspaceId,
+      name: input.name,
+      description: input.description,
+      type: 'convention',
+      source: 'extracted',
+      body: input.body,
+      enabled: input.enabled ?? true,
+      changeNote: EXTRACTED_CHANGE_NOTE,
+      evidenceFiles,
     });
     return toSkillDto(skill);
   }

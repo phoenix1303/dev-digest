@@ -39,6 +39,8 @@ export interface NewSkill {
   body: string;
   enabled: boolean;
   changeNote: string;
+  /** Files the skill was derived from (extracted skills). */
+  evidenceFiles?: string[] | null;
 }
 
 export interface SkillPatch {

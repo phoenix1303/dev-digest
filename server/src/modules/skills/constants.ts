@@ -15,3 +15,6 @@ export const IMPORT_BODY_LIMIT = Math.ceil((MAX_ZIP_BYTES * 4) / 3) + 64 * 1024;
 
 /** Skill bodies above this many tokens get an import warning. */
 export const LARGE_SKILL_TOKENS = 4000;
+
+/** v1 change note for a skill merged from accepted conventions. */
+export const EXTRACTED_CHANGE_NOTE = 'Extracted from conventions';
