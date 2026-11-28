@@ -5,6 +5,7 @@ export const s = {
     border: "1px dashed var(--border-strong)",
     borderRadius: 10,
     padding: "32px 20px",
+    margin: "20px 24px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -13,7 +14,7 @@ export const s = {
     color: "var(--text-secondary)",
   },
   limits: { fontSize: 12, color: "var(--text-muted)" },
-  body: { display: "flex", flexDirection: "column", gap: 4 },
+  body: { display: "flex", flexDirection: "column", gap: 4, padding: "18px 24px" },
   trustBox: {
     display: "flex",
     gap: 10,

@@ -59,9 +59,14 @@ export function ConventionsView() {
   const subtitle = list.length > 0 ? t("page.candidateCount", { count: list.length }) : t("page.subtitle");
   const actions =
     list.length > 0 ? (
-      <Button kind="secondary" icon="RefreshCw" onClick={runExtraction} loading={scanning}>
-        {scanning ? t("page.scanning") : t("page.rescan")}
-      </Button>
+      <>
+        <Button kind="secondary" icon="RefreshCw" onClick={runExtraction} loading={scanning}>
+          {scanning ? t("page.scanning") : t("page.rescan")}
+        </Button>
+        <Button kind="primary" icon="Sparkles" disabled={acceptedCount === 0} onClick={() => setModalOpen(true)}>
+          {t("page.createSkill")}
+        </Button>
+      </>
     ) : null;
 
   return (
@@ -95,17 +100,6 @@ export function ConventionsView() {
             <>
               <div style={s.toolbar}>
                 <span className="tnum">{t("page.acceptedCount", { accepted: acceptedCount, total: list.length })}</span>
-                <div style={s.toolbarRight}>
-                  <Button
-                    kind="primary"
-                    size="sm"
-                    icon="Sparkles"
-                    disabled={acceptedCount === 0}
-                    onClick={() => setModalOpen(true)}
-                  >
-                    {t("page.createSkill")}
-                  </Button>
-                </div>
               </div>
               <div style={s.list}>
                 {list.map((c) => (

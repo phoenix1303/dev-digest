@@ -113,12 +113,17 @@
   },
   "create": {
     "title": "New skill",
-    "subtitle": "Name it, describe when to use it, then write the body in Config.",
+    "subtitle": "Name it and say when to apply it. Add the body now or later in Config — or paste a whole SKILL.md.",
     "create": "Create skill",
     "creating": "Creating…",
     "cancel": "Cancel",
     "namePlaceholder": "untested-branches",
-    "descriptionPlaceholder": "Flag every new branch that no test exercises."
+    "descriptionPlaceholder": "Flag every new branch that no test exercises.",
+    "body": "Body (markdown)",
+    "bodyHint": "Optional. The full instructions the agent follows. Plain text only — nothing in a skill is executed.",
+    "bodyPlaceholder": "# My skill\n\n## Flag\n- …",
+    "descriptionTooLong": "Too long — keep the description under {max} characters. Put the detailed rules in the body.",
+    "pastedSplit": "Looks like a SKILL.md — split it into name, type, description and body. Check the fields before creating."
   },
   "import": {
     "title": "Import skill",

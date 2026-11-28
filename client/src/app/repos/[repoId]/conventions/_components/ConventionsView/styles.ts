@@ -11,7 +11,6 @@ export const s = {
     fontSize: 13,
     color: "var(--text-muted)",
   },
-  toolbarRight: { marginLeft: "auto" },
   list: { display: "flex", flexDirection: "column", gap: 12 },
   skeletons: { display: "flex", flexDirection: "column", gap: 12 },
   error: { fontSize: 13, color: "var(--crit)", marginBottom: 12 },
