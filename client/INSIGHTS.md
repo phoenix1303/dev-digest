@@ -25,6 +25,7 @@ when the file passes ~200 entries.
 ## Recurring Errors & Fixes
 - 2026-11-27 · Home shows "No repositories yet" while `curl :3001/repos` returns data → the browser bundle has a stale `NEXT_PUBLIC_API_BASE` baked in (it is inlined at compile time): a second `next dev` in client/ (scripts/e2e.sh, :3101) shared `.next` and recompiled chunks the :3000 server then served. Fix: stop client, `rm -rf client/.next`, restart. Prevented by `NEXT_DIST_DIR` (e2e uses `.next-e2e`); HomeView now shows an ErrorState with the real URL instead of the empty state — evidence: client/next.config.mjs (distDir), client/src/app/_components/HomeView/HomeView.tsx
 - 2026-11-27 · NEVER value-import (`import { X }`) from `@devdigest/shared` in the client — only `import type` — because the vendored barrel re-exports `./contracts/*.js` specifiers that Next/webpack cannot resolve: the page dies with "Module not found: Can't resolve './contracts/findings.js'" while `tsc` and vitest both pass. Mirror the enum values locally instead — evidence: client/src/components/skill-badges/constants.ts (SKILL_TYPES)
+- 2026-11-28 · `@devdigest/ui` `<Modal>` gives its children NO padding (only header/footer are padded) — every modal body must add its own `padding: "18px 24px"`, otherwise fields sit flush against the modal border. The "Request validation failed" banner hides zod details; `ApiError.details` carries the issues (path + message) — show them — evidence: client/src/app/skills/_components/CreateSkillModal/helpers.ts (formatValidationDetails)
 
 ## Session Notes
 

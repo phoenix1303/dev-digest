@@ -78,7 +78,15 @@ async function runFlow(file: string, flow: Flow): Promise<FlowResult> {
       steps.push({ label, ok: true });
       console.log(`   ✓ ${label}`);
     } catch (e) {
-      const msg = (e as Error).message.split("\n")[0];
+      // execFile's message is just "Command failed: <cmd>"; agent-browser's real
+      // reason (not found / timeout / intercepted) is on stderr/stdout.
+      const err = e as Error & { stderr?: string; stdout?: string };
+      const reason = [err.stderr, err.stdout]
+        .flatMap((s) => (s ?? "").split("\n"))
+        .map((l) => l.trim())
+        .filter((l) => l && !l.includes("ignoring 1 unsupported settings"))
+        .join(" | ");
+      const msg = err.message.split("\n")[0] + (reason ? ` — ${reason}` : "");
       steps.push({ label, ok: false, detail: msg });
       console.log(`   ✗ ${label} — ${msg}`);
       // Best-effort failure screenshot for the artifact upload.

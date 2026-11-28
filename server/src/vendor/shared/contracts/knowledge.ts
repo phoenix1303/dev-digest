@@ -232,15 +232,51 @@ export const CommunitySkill = z.object({
 export type CommunitySkill = z.infer<typeof CommunitySkill>;
 
 // ---- Conventions ----
+export const ConventionStatus = z.enum(['pending', 'accepted', 'rejected']);
+export type ConventionStatus = z.infer<typeof ConventionStatus>;
+
 export const ConventionCandidate = z.object({
   id: z.string(),
   rule: z.string(),
   evidence_path: z.string(),
   evidence_snippet: z.string(),
   confidence: z.number().min(0).max(1),
+  /** Derived: `status === 'accepted'` (kept for older readers). */
   accepted: z.boolean(),
+  status: ConventionStatus,
 });
 export type ConventionCandidate = z.infer<typeof ConventionCandidate>;
+
+/** POST /repos/:id/conventions/extract → the repo's full candidate list. */
+export const ExtractConventionsResult = z.object({
+  candidates: z.array(ConventionCandidate),
+  /** How many files (samples + configs) were sent to the model. */
+  sampled_files: z.number().int(),
+});
+export type ExtractConventionsResult = z.infer<typeof ExtractConventionsResult>;
+
+/** PATCH /conventions/:id — edit the rule text and/or change the status. */
+export const UpdateConventionInput = z
+  .object({
+    rule: z.string().trim().min(1).max(500).optional(),
+    status: ConventionStatus.optional(),
+  })
+  .refine((v) => v.rule !== undefined || v.status !== undefined, {
+    message: 'Provide rule and/or status',
+  });
+export type UpdateConventionInput = z.infer<typeof UpdateConventionInput>;
+
+/**
+ * POST /repos/:id/conventions/skill — save the (user-edited) draft merged from
+ * accepted candidates as a skill (type `convention`, source `extracted`).
+ */
+export const CreateConventionSkillInput = z.object({
+  name: SkillName,
+  description: z.string().trim().min(1).max(500),
+  body: z.string().trim().min(1).max(64_000),
+  enabled: z.boolean().optional(),
+});
+export type CreateConventionSkillInput = z.infer<typeof CreateConventionSkillInput>;
 
 // ---- Agents ----
 // 'openrouter' routes through the OpenAI-compatible API (OpenAIProvider with a

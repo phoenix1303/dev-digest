@@ -79,6 +79,7 @@ export class SkillsRepository implements SkillsRepositoryPort {
           body: s.body,
           enabled: s.enabled,
           version: 1,
+          evidenceFiles: s.evidenceFiles ?? null,
         })
         .returning();
       await tx

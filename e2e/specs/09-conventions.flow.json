@@ -1,0 +1,14 @@
+{
+  "name": "Conventions page (L02)",
+  "description": "From the PR list, opens Skills Lab → Conventions in the sidebar and checks the per-repo Conventions page renders its empty state with the Run extraction CTA. Read-only: extraction calls an LLM, so it is not triggered here (covered by server/test/conventions.it.test.ts).",
+  "steps": [
+    { "cmd": ["open", "{BASE}/"], "label": "load the app root" },
+    { "cmd": ["wait", "--url", "/pulls"], "label": "land on the PR list" },
+    { "cmd": ["find", "text", "Conventions", "click"], "label": "open Conventions from the sidebar" },
+    { "cmd": ["wait", "--url", "/conventions"], "label": "navigate to the repo's Conventions route" },
+    { "cmd": ["wait", "--load", "networkidle"], "label": "conventions fetch settles" },
+    { "cmd": ["wait", "--text", "Conventions in "], "label": "page heading is visible" },
+    { "cmd": ["wait", "--text", "No conventions extracted yet"], "label": "empty state is shown for a never-scanned repo" },
+    { "cmd": ["wait", "--text", "Run extraction"], "label": "Run extraction CTA is offered" }
+  ]
+}

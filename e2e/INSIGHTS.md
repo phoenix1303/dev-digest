@@ -25,3 +25,4 @@ when the file passes ~200 entries.
 ## Session Notes
 
 ## Open Questions
+- 2026-11-28 · Flow 08 `find text untested-branches click` passed locally but failed in CI with "Element … is not visible, so the click would not reach it" (CI = `next build`/`start`, 1280×577 viewport; the card sorts last in the scrolling skills sidebar, and the page's hidden RSC `<script>` payload also contains the text). Fix: type into the search box (`find placeholder "Search skills…" fill …` — needs the real `…` char, "Search skills" alone doesn't match) then `find role button click --name <skill>` — prefer role locators over bare `find text` for clicks — evidence: e2e/specs/08-skills.flow.json
