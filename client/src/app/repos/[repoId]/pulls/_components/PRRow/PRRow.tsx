@@ -9,7 +9,9 @@ import type { PrMeta } from "@/lib/types";
 import { SIZE_COLOR, STATUS_META } from "../../constants";
 import { relativeTime, sizeOf } from "../../helpers";
 import { s } from "../../styles";
+
 import { RunCostBadge } from "@/components/run-cost-badge";
+import { FindingsPreview } from "../FindingsPreview";
 
 export function PRRow({ pr, repoId }: { pr: PrMeta; repoId: string }) {
   const t = useTranslations("prReview");
@@ -50,6 +52,18 @@ export function PRRow({ pr, repoId }: { pr: PrMeta; repoId: string }) {
       <div style={s.scoreCell}>
         {reviewed ? (
           <CircularScore score={pr.score!} size={34} stroke={3} />
+        ) : (
+          <span style={s.muted}>—</span>
+        )}
+      </div>
+      <div style={s.findingsCell}>
+        {pr.findings && pr.findings.total > 0 ? (
+          <FindingsPreview
+            counts={pr.findings.counts}
+            findings={pr.findings.preview}
+            total={pr.findings.total}
+            heading={t("findingsPreview.heading", { count: pr.findings.total })}
+          />
         ) : (
           <span style={s.muted}>—</span>
         )}

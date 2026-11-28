@@ -4,10 +4,10 @@
  * a settled run is colored/labelled by its denormalized blocker/finding counts,
  * and shows the review score ring.
  */
-import { describe, it, expect, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, afterEach, vi } from "vitest";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
-import type { RunSummary } from "@devdigest/shared";
+import type { RunSummary, FindingPreview } from "@devdigest/shared";
 import messages from "../../../../../../../../messages/en/prReview.json";
 import { RunHistory } from "./RunHistory";
 
@@ -90,5 +90,50 @@ describe("RunHistory — cost badge (M1)", () => {
     renderRuns([run({ status: "failed", error: "429 quota", tokens_in: 0, tokens_out: 0, cost_usd: null })]);
     expect(screen.queryByText(/tok/)).not.toBeInTheDocument();
     expect(screen.queryByText(/\$/)).not.toBeInTheDocument();
+  });
+});
+
+const pf = (id: string, severity: FindingPreview["severity"]): FindingPreview => ({
+  id,
+  severity,
+  category: "perf",
+  title: `Finding ${id}`,
+  file: "src/users.ts",
+  start_line: 45,
+  end_line: 52,
+  rationale: "N+1 query",
+  confidence: 0.86,
+});
+
+describe("RunHistory — findings preview", () => {
+  const findingsByRun = new Map([["run-1", [pf("w", "WARNING"), pf("s", "SUGGESTION")]]]);
+
+  it("a settled run with known findings shows severity icons and a hover card; clicking an item jumps to the run", () => {
+    const onGoToReview = vi.fn();
+    const { container } = render(
+      <NextIntlClientProvider locale="en" messages={{ prReview: messages }}>
+        <RunHistory
+          runs={[run({ status: "done", findings_count: 2, blockers: 0 })]}
+          onOpenTrace={() => {}}
+          onGoToReview={onGoToReview}
+          findingsByRun={findingsByRun}
+        />
+      </NextIntlClientProvider>,
+    );
+    expect([...container.querySelectorAll("[data-severity]")].map((n) => n.getAttribute("data-severity"))).toEqual([
+      "WARNING",
+      "SUGGESTION",
+    ]);
+    expect(screen.queryByText(/2 finding\(s\)/)).not.toBeInTheDocument();
+
+    fireEvent.mouseEnter(screen.getByLabelText(/0 critical, 1 warning, 1 suggestion/));
+    expect(screen.getByRole("tooltip")).toHaveTextContent("2 findings in this run");
+    fireEvent.click(screen.getByText("Finding w"));
+    expect(onGoToReview).toHaveBeenCalledWith("run-1");
+  });
+
+  it("falls back to the plain count when the run's findings are not loaded", () => {
+    renderRuns([run({ status: "done", findings_count: 2, blockers: 0 })]);
+    expect(screen.getByText(/2 finding\(s\)/)).toBeInTheDocument();
   });
 });

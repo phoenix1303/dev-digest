@@ -13,6 +13,7 @@ when the file passes ~200 entries.
 ## What Doesn't Work
 
 ## Codebase Patterns
+- 2026-11-27 · PR-list `cost_usd` is the TOTAL of every agent_run on the PR, not the latest round. The user corrected this: they want cumulative spend, and every re-run adds to it. Deleting a run from the timeline removes it from the total. Findings in the list still use the latest round (newest review per agent) — evidence: server/src/modules/pulls/cost.ts (totalRunCost), server/src/modules/pulls/findings-summary.ts
 - 2026-11-26 · Grounding/prompt code lives in reviewer-core: `src/platform/grounding.ts` / `prompt.ts` / `structured.ts` are re-export shims of `@devdigest/reviewer-core`, so edits there have no effect or get lost — edit `reviewer-core/src/` instead.
   - CORRECTION 2026-11-27: the `src/platform/{grounding,prompt,structured}.ts` shims were deleted — import from `@devdigest/reviewer-core` directly; the rest of this entry (edit `reviewer-core/src/`) still holds.
 - 2026-11-26 · `@devdigest/shared` is vendored twice (`server/src/vendor/shared` and `client/src/vendor/shared`) and the copies already differ (adapters, trace, knowledge, eval-ci, productionize) — a contract change that works in the API leaves client types disagreeing unless you update both copies and diff them.
